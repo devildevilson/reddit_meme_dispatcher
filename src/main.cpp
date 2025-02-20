@@ -9,7 +9,6 @@
 #include <drogon/drogon.h>
 #include "scraper.h"
 #include "utils.h"
-#include <glaze/glaze.hpp>
 
 #include "spdlog/spdlog.h"
 #include <gst/gst.h>
@@ -39,82 +38,8 @@
 // скрапить каждое некоторое время мемы с реддита
 // собирать все файлы в один массив
 
-const std::array<std::string_view, 6> reddit_time_lengths = { "hour", "day", "week", "month", "year", "all" };
-
-struct scraper_settings {
-  std::vector<std::string> subreddits;
-  std::string reddit_time_length;
-  std::string folder;
-  size_t every_N_days;
-  size_t max_size;
-  uint16_t port;
-  uint16_t log_level;
-};
-
-static scraper_settings scraper_settings_construct() {
-  return scraper_settings{
-    { "funny", "memes", "dankmemes", "funnymemes" }, 
-    "week",
-    "./meme_folder",
-    7,
-    50 * 1024 * 1024,
-    8080,
-    uint16_t(trantor::Logger::kWarn)
-  };
-}
-
-static scraper_settings parse_json(const std::string &path) {
-  const auto buffer = utility::read_file(path);
-  scraper_settings s{};
-  auto ec = glz::read_json(s, buffer); // populates s from buffer
-  if (ec) { throw std::runtime_error("Could not parse json file " + path); }
-  return s;
-}
-
-static std::string create_json(const scraper_settings &s) {
-  std::string buffer;
-  auto ec = glz::write_json(s, buffer);
-  if (ec) { throw std::runtime_error("Could not create json file from struct"); }
-  return buffer;
-}
-
-// наверное нужно сделать спинлок?
-static void spin_until(std::chrono::steady_clock::time_point tp, std::stop_token stoken) {
-  auto cur = std::chrono::steady_clock::now();
-  while (cur < tp && !stoken.stop_requested()) {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-  }
-}
-
-static void scraper_run(scraper_settings sets, std::stop_token stoken) {
-  auto tp = std::chrono::steady_clock::now();
-  auto next_tp = tp;
-  scraper scr(4, sets.folder); // скрапер придется сделать глобальным наверное
-  size_t index = 0;
-  const size_t days_seconds = sets.every_N_days * 24 * 60 * 60;
-  const size_t seconds_until_next = days_seconds / sets.subreddits.size();
-
-  while (!stoken.stop_requested()) {
-    // нужно сделать отдельный метод API в котором мы вызовем 
-    // проверку всех папок
-    scr.check_folders(days_seconds, sets.max_size);
-
-    const std::string_view &current_subreddit = sets.subreddits[index];
-    scr.scrape(current_subreddit, sets.reddit_time_length);
-    // тут бы нам подождать пока все не скачается
-    //scr.check_folders(days_seconds, sets.max_size);
-
-    next_tp = next_tp + std::chrono::seconds(seconds_until_next);
-    index += 1;
-    if (index >= sets.subreddits.size()) {
-      index = 0;
-      next_tp = tp + std::chrono::seconds(days_seconds);
-      tp = std::chrono::steady_clock::now();
-    }
-
-    spin_until(next_tp, stoken);
-  }
-}
+// как сделать scraper_settings глобальным?
+// как сделать scraper глобальным?
 
 using namespace drogon;
 
@@ -124,9 +49,9 @@ const std::string_view settings_path = "./scraper.json";
 int main(int argc, char *argv[]) {
   gst_init (&argc, &argv);
 
-  auto sets = scraper_settings_construct();
+  auto sets = utility::scraper_settings_construct();
   try {
-    sets = parse_json(std::string(settings_path));
+    sets = utility::parse_json(std::string(settings_path));
   } catch(const std::exception &e) {
     spdlog::warn("Error '{}'. Skip. Using default one", e.what());
     // сохранить json на диск
@@ -137,9 +62,15 @@ int main(int argc, char *argv[]) {
   const uint16_t port = sets.port;
   const uint16_t log_level = sets.log_level;
 
+  {
+    utility::global g;
+    g.init_scraper(4, sets.folder);
+    g.init_settings(std::move(sets));
+  }
+
   std::stop_source stop_source;
-  std::jthread scraper_thread([sets = std::move(sets)] (std::stop_token stoken) {
-    scraper_run(std::move(sets), stoken);
+  std::jthread scraper_thread([] (std::stop_token stoken) {
+    utility::scraper_run(stoken);
   }, stop_source.get_token());
 
   app().setLogPath("./")

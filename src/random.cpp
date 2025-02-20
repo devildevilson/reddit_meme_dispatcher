@@ -27,17 +27,10 @@ meme::meme() {
   s = xoshiro256starstar::init(123);
 }
 
-static std::string read_file_bin(const std::string &path) {
-  std::ifstream file(path, std::ios::in | std::ios::binary);
-  if (!file.is_open()) throw std::runtime_error("Could not open file: "+path);
-  std::string content((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
-  return content;
-}
-
 void meme::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
   utility::time_log l("meme");
 
-  const auto memepath = utility::global_unique_files()->call([this] (const std::vector<std::string> &paths) {
+  const auto memepath = utility::global::unique_files()->call([this] (const std::vector<std::string> &paths) {
     if (paths.size() == 0) return std::string();
     const size_t num = this->interval(paths.size());
     return paths[num];
@@ -45,7 +38,6 @@ void meme::get(const HttpRequestPtr &req, std::function<void(const HttpResponseP
 
   // лучше возвращать 404
   if (memepath.empty()) {
-    //throw std::runtime_error("Could not find a meme ??!?!?");
     auto resp = HttpResponse::newNotFoundResponse(req);
     resp->setContentTypeString("text/plain");
     resp->setBody("Could not find any meme");
@@ -53,7 +45,7 @@ void meme::get(const HttpRequestPtr &req, std::function<void(const HttpResponseP
     return;
   }
 
-  auto file_data = read_file_bin(memepath);
+  auto file_data = utility::read_file_bin(memepath);
   if (file_data.empty()) { // попробовать еще раз?
     spdlog::warn("Could not read file '{}'", memepath);
     auto resp = HttpResponse::newHttpResponse();

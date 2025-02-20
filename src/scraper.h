@@ -13,6 +13,9 @@ namespace drogon {
   class HttpClient;
 }
 
+// для того чтобы снова пройтись по локальной директории 
+// нужно как минимум вытащить данные из конфига который в начале грузим
+
 class scraper {
 public:
   scraper(const size_t threads_count, std::string path); // std::string tmp_path
