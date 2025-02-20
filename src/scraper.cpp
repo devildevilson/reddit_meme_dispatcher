@@ -49,8 +49,8 @@ scraper::scraper(const size_t threads_count_, std::string path_) : //std::string
     paths.emplace_back(std::move(path));
   }
 
-  utility::global_unique_files()->setup_staging(std::move(paths));
-  utility::global_unique_files()->swap_buffers();
+  utility::global::unique_files()->setup_staging(std::move(paths));
+  utility::global::unique_files()->swap_buffers();
 
   main_client->setUserAgent("redditHomeProject v1 by Manatrimyss");
   i_client->setUserAgent("redditHomeProject v1 by Manatrimyss");
@@ -61,8 +61,8 @@ void scraper::check_folders(const size_t no_older_than, const size_t maximum_siz
   std::vector<std::string> existing;
   std::vector<std::string> to_remove;
   utility::staging_func f([&existing, &to_remove] () {
-    utility::global_unique_files()->setup_staging(std::move(existing));
-    utility::global_unique_files()->swap_buffers();
+    utility::global::unique_files()->setup_staging(std::move(existing));
+    utility::global::unique_files()->swap_buffers();
 
     for (const auto &path : to_remove) {
       fs::remove(path);

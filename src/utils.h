@@ -8,22 +8,11 @@
 #include <vector>
 #include <chrono>
 #include <mutex>
+#include <memory>
 #include <shared_mutex>
+#include "scraper.h"
 
 namespace utility {
-class unique_names {
-public:
-  void set(std::vector<std::pair<std::string, std::string>> v);
-  bool add(std::string name, std::string value);
-  bool remove(const std::string& name);
-  std::string get(std::string name) const;
-private:
-  mutable std::mutex mutex;
-  std::unordered_map<std::string, std::string> container;
-};
-
-unique_names* global_names();
-
 struct time_log {
   std::string_view msg;
   std::chrono::steady_clock::time_point tp;
@@ -93,19 +82,47 @@ private:
   std::vector<T> staging;
 };
 
-using unique_files = double_buffer_data<std::string>;
-unique_files* global_unique_files();
+using unique_files_t = double_buffer_data<std::string>;
 
 template <typename F>
 class staging_func {
 public:
   staging_func(F&& _func) noexcept : func(std::move(_func)) {}
-  ~staging_func() {
-    func();
-  }
+  ~staging_func() noexcept { func(); }
 private:
   F func;
 };
+
+struct scraper_settings {
+  std::vector<std::string> subreddits;
+  std::string reddit_time_length;
+  std::string folder;
+  size_t every_N_days;
+  size_t max_size;
+  uint16_t port;
+  uint16_t log_level;
+};
+
+struct global {
+public:
+  static unique_files_t* unique_files();
+  static const scraper_settings& settings();
+  static void check_folders(const size_t no_older_than, const size_t maximum_size);
+  static void scrape(const std::string_view &current_subreddit, const std::string_view &duration);
+  void init_scraper(const size_t threads_count, std::string path);
+  void init_settings(scraper_settings sets);
+private:
+  static unique_files_t uf;
+  static scraper_settings sets;
+  static std::unique_ptr<scraper> s;
+  static std::mutex mutex;
+};
+
+scraper_settings scraper_settings_construct();
+scraper_settings parse_json(const std::string &path);
+std::string create_json(const scraper_settings &s);
+void spin_until(std::chrono::steady_clock::time_point tp, std::stop_token stoken);
+void scraper_run(std::stop_token stoken);
 
 enum class io_state {
   ok,
