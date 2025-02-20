@@ -36,7 +36,6 @@ void meme::get(const HttpRequestPtr &req, std::function<void(const HttpResponseP
     return paths[num];
   });
 
-  // лучше возвращать 404
   if (memepath.empty()) {
     auto resp = HttpResponse::newNotFoundResponse(req);
     resp->setContentTypeString("text/plain");
