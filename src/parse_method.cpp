@@ -1,4 +1,4 @@
-#include "parse.h"
+#include "parse_method.h"
 #include "utils.h"
 #include "reddit_post.h"
 
@@ -11,7 +11,7 @@
 #include <format>
 #include <iostream>
 
-const std::string_view default_reddit_post_json_str = "{{posts:[{{\"type\":\"image\",\"url\":\"{}\",\"name\":\"\",\"title\":\"\",\"author\":\"\",\"subreddit\":\"\",\"score\":0}}]}}";
+constexpr std::string_view default_reddit_post_json_str = "{{posts:[{{\"type\":\"image\",\"url\":\"{}\",\"name\":\"\",\"title\":\"\",\"author\":\"\",\"subreddit\":\"\",\"score\":0}}]}}";
 
 constexpr bool is_whitespace(char c) {
   // Include your whitespaces here. The example contains the characters

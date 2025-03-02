@@ -13,7 +13,7 @@
 void find::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback, std::string &&name) {
   utility::time_log log("find");
 
-  const auto memepath = utility::global_unique_files()->call([this, &name] (const std::vector<std::string> &paths) {
+  const auto memepath = utility::global::unique_files()->call([this, &name] (const std::vector<std::string> &paths) {
     for (const auto &path : paths) {
       if (path.find(name) != std::string::npos) return path;
     }
