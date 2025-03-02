@@ -1,5 +1,6 @@
 #include "parse.h"
 #include "utils.h"
+#include "reddit_post.h"
 
 #include <drogon/drogon.h>
 #include <glaze/glaze.hpp>
@@ -10,26 +11,7 @@
 #include <format>
 #include <iostream>
 
-struct reddit_post {
-  std::string type;
-  std::string name;
-  std::string url;
-  std::string title;
-  std::string author;
-  std::string subreddit;
-  int64_t score;
-
-  std::optional<std::string> content;
-  std::optional<std::string> video_link;
-  std::optional<std::string> audio_link;
-  // галерея?
-};
-
 const std::string_view default_reddit_post_json_str = "{{posts:[{{\"type\":\"image\",\"url\":\"{}\",\"name\":\"\",\"title\":\"\",\"author\":\"\",\"subreddit\":\"\",\"score\":0}}]}}";
-
-struct reddit_list {
-  std::vector<reddit_post> posts;
-};
 
 constexpr bool is_whitespace(char c) {
   // Include your whitespaces here. The example contains the characters
@@ -231,12 +213,12 @@ void parse::get(const HttpRequestPtr &req, std::function<void(const HttpResponse
         childs = json[0]["data"]["children"];
       }
 
-      reddit_list list;
+      utility::reddit_list list;
       for (int i = 0; i < int(childs.size()); ++i) {
         const auto &meme_data = childs[i]["data"];
         const auto domain = meme_data["domain"].asString();
 
-        reddit_post post;
+        utility::reddit_post post;
         post.url = meme_data["url"].asString();
         post.name = meme_data["name"].asString();
         post.title = meme_data["title"].asString();
