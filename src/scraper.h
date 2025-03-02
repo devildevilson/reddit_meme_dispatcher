@@ -9,6 +9,8 @@
 #include "pool.h"
 #include <drogon/drogon.h>
 
+#include "reddit_post.h"
+
 namespace drogon {
   class HttpClient;
 }
@@ -21,6 +23,8 @@ public:
   void scrape(const std::string_view &current_subreddit, const std::string_view &duration);
   // надо добавить функцию которая выгрузит отдельный мем
   // причем эта функция наверное примет json с мемом
+
+  void steal_post(const utility::reddit_post &post);
 private:
   thread::pool pool;
   std::string path;
