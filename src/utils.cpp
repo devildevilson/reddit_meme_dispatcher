@@ -6,6 +6,7 @@
 #include <glaze/glaze.hpp>
 
 #include "spdlog/spdlog.h"
+#include "pugixml.hpp"
 
 namespace utility {
 time_log::time_log(const std::string_view &msg, std::chrono::steady_clock::time_point tp_) noexcept : msg(msg), tp(tp_) {}
@@ -107,6 +108,43 @@ void scraper_run(std::stop_token stoken) {
 
     spin_until(next_tp, stoken);
   }
+}
+
+std::tuple<std::string, std::string, std::string> parse_reddit_dash_playlist(const std::string &url, const std::string &xml) {
+  pugi::xml_document doc;
+  const auto xml_res = doc.load_string(xml.c_str());
+  if (!xml_res) {
+    auto err = std::format("Could not parse xml '{}', reason: {}", url, xml_res.description());
+    return std::make_tuple(std::string(), std::string(), std::move(err));
+  }
+
+  // expect different quality level video/audio parts
+  std::string video_base;
+  std::string audio_base;
+  for (auto node = doc.child("MPD").child("Period").child("AdaptationSet"); node; node = node.next_sibling("AdaptationSet")) {
+    size_t bandwidth = 0;
+    std::string set_type = node.attribute("contentType").value();
+    for (auto repr = node.child("Representation"); repr; repr = repr.next_sibling("Representation")) {
+      size_t bw = repr.attribute("bandwidth").as_int();
+      std::string val = repr.child_value("BaseURL");
+      if (bw > bandwidth) {
+        bandwidth = bw;
+        if (set_type == "video") video_base = std::move(val);
+        if (set_type == "audio") audio_base = std::move(val);
+      }
+    }
+  }
+
+  if (video_base.empty()) {
+    auto err = std::format("Could not get video base url from data '{}'", url);
+    return std::make_tuple(std::string(), std::string(), std::move(err));
+  }
+
+  const auto base_url = url.back() == '/' ? url : url + "/";
+  // предположим что мы что то даже нашли теперь нужно скачать оба файла
+  auto video_url = base_url + video_base;
+  auto audio_url = audio_base.empty() ? audio_base : base_url + audio_base;
+  return std::make_tuple(std::move(video_url), std::move(audio_url), std::string());
 }
 
 std::string read_file(const std::string &path) {

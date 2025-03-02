@@ -18,7 +18,7 @@ struct time_log {
   std::chrono::steady_clock::time_point tp;
 
   time_log(const std::string_view &msg, std::chrono::steady_clock::time_point tp_ = std::chrono::steady_clock::now()) noexcept;
-  ~time_log() noexcept;
+  ~time_log() noexcept;  
 };
 
 template <typename T>
@@ -123,6 +123,8 @@ scraper_settings parse_json(const std::string &path);
 std::string create_json(const scraper_settings &s);
 void spin_until(std::chrono::steady_clock::time_point tp, std::stop_token stoken);
 void scraper_run(std::stop_token stoken);
+
+std::tuple<std::string, std::string, std::string> parse_reddit_dash_playlist(const std::string &url, const std::string &xml);
 
 enum class io_state {
   ok,

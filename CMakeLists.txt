@@ -80,6 +80,7 @@ set(SRC_LIST
   src/random.cpp
   src/recheck.cpp
   src/scraper.cpp
+  src/parse_method.cpp
   src/find_method.cpp
   src/utils.cpp
   src/audio_video_mux.cpp
