@@ -199,13 +199,14 @@ void scraper::get_json_data_from_reddit(std::string subreddit, std::string meme_
     const auto &meme_data = childs[i]["data"];
     auto url = meme_data["url"].asString();
     auto name = meme_data["name"].asString();
+    const auto domain = meme_data["domain"].asString();
     //const auto ups = meme_data["ups"].asInt();
     const bool is_video = meme_data["is_video"].asBool();
 
-    // просто пост без картинки можно отделить с помощью поля domain
-    // оно должно быть либо v.redd.it либо i.redd.it
-    // если не нашли что то такое, то пропускаем
-    // + нужно сделать фильтр по mime type
+    // воровать текстовые смешнявки?
+
+    // нужно сделать фильтр по mime type
+    if (domain != "v.redd.it" && domain != "i.redd.it") continue;
 
     if (is_video) {
       std::string dash_url;

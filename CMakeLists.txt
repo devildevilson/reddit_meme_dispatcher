@@ -77,13 +77,13 @@ link_libraries(
 set(SRC_LIST
   src/main.cpp
   src/pool.cpp
-  src/random.cpp
-  src/recheck.cpp
   src/scraper.cpp
-  src/parse_method.cpp
-  src/find_method.cpp
   src/utils.cpp
   src/audio_video_mux.cpp
+  src/recheck_method.cpp
+  src/meme_method.cpp
+  src/parse_method.cpp
+  src/find_method.cpp
   src/steal_method.cpp
 )
 
