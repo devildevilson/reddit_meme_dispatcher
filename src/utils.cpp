@@ -34,6 +34,11 @@ void global::scrape(const std::string_view &current_subreddit, const std::string
   s->scrape(current_subreddit, duration);
 }
 
+void global::steal_post(const utility::reddit_post &post) {
+  std::unique_lock<std::mutex> lock(mutex);
+  s->steal_post(post);
+}
+
 void global::init_scraper(const size_t threads_count, std::string path) {
   std::unique_lock<std::mutex> lock(mutex);
   s = std::make_unique<scraper>(threads_count, path);

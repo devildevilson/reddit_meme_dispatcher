@@ -425,16 +425,24 @@ void scraper::scrape(const std::string_view &current_subreddit, const std::strin
 
 void scraper::steal_post(const utility::reddit_post &post) {
   auto final_path = path + std::string(post.subreddit.empty() ? "_" : post.subreddit);
+  if (!fs::exists(final_path)) {
+    fs::create_directory(final_path);
+  }
+
+  if (!fs::is_directory(final_path)) {
+    throw std::runtime_error("'"+final_path+"' is not a directory");
+  }
 
   if (post.type == "image") {
     auto img_f = std::bind(&scraper::download_image, this, post.name, std::move(final_path), std::placeholders::_1, std::placeholders::_2);
-    http_get(this->i_client.get(), url, {}, std::move(img_f));
+    http_get(this->i_client.get(), post.url, {}, std::move(img_f));
     return;
   }
 
   if (post.type == "video") {
     auto video_f = std::bind(&scraper::download_video, this, post.name, std::move(final_path), post.audio_link.value_or(std::string()), std::placeholders::_1, std::placeholders::_2);
     http_get(this->v_client.get(), post.video_link.value(), {}, std::move(video_f));
+    return;
   }
 
   spdlog::warn("Skip downloading meme '{}', url: {}", post.name, post.url);

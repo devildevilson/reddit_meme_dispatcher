@@ -1,4 +1,4 @@
-#include "parse.h"
+#include "steal_method.h"
 #include "utils.h"
 #include "reddit_post.h"
 
@@ -38,7 +38,8 @@ static void http_get(const std::string_view &url, const std::initializer_list<st
 }
 
 void steal::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback, std::string &&raw_url) {
-  const auto url = std::format("http://localhost:{}/parse/?url={}", 8080, raw_url);
+  const auto port = utility::global::settings().port;
+  const auto url = std::format("http://localhost:{}/parse/?url={}", port, raw_url);
   http_get(url, {}, [callback = std::move(callback)] (drogon::ReqResult result, const drogon::HttpResponsePtr &response) {
     utility::time_log log("steal");
 
@@ -56,22 +57,26 @@ void steal::get(const HttpRequestPtr &req, std::function<void(const HttpResponse
     utility::reddit_list list;
     auto ec = glz::read_json(list, response->getBody());
     if (ec) {
-      const auto descriptive_error = glz::format_error(ec, buffer);
+      const auto descriptive_error = glz::format_error(ec, response->getBody());
       throw std::runtime_error(descriptive_error);
     }
 
     for (const auto &post : list.posts) {
       if (post.type == "image") {
-        
+        utility::global::steal_post(post);
         continue;
       }
 
       if (post.type == "video") {
-        // скачиваем видос
+        utility::global::steal_post(post);
         continue;
       }
 
       spdlog::warn("Could not steal '{}', url: {}. Skip", post.name, post.url);
     }
+
+    auto resp = HttpResponse::newHttpResponse(k200OK, CT_APPLICATION_JSON);
+    resp->setBody(std::string(response->getBody()));
+    callback(resp);
   });
 }

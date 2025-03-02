@@ -11,6 +11,7 @@
 #include <memory>
 #include <shared_mutex>
 #include "scraper.h"
+#include "reddit_post.h"
 
 namespace utility {
 struct time_log {
@@ -109,6 +110,7 @@ public:
   static const scraper_settings& settings();
   static void check_folders(const size_t no_older_than, const size_t maximum_size);
   static void scrape(const std::string_view &current_subreddit, const std::string_view &duration);
+  static void steal_post(const utility::reddit_post &post);
   void init_scraper(const size_t threads_count, std::string path);
   void init_settings(scraper_settings sets);
 private:
@@ -138,3 +140,4 @@ std::string read_file_bin(const std::string &path);
 io_state write_file_bin(const std::string_view &name, const std::string_view &content);
 io_state write_file(const std::string_view &name, const std::string_view &content);
 }
+
