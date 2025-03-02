@@ -79,6 +79,7 @@ set(SRC_LIST
   src/pool.cpp
   src/random.cpp
   src/scraper.cpp
+  src/parse.cpp
   src/utils.cpp
   src/audio_video_mux.cpp
 )

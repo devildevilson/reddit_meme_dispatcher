@@ -29,7 +29,7 @@ struct time_log {
   std::chrono::steady_clock::time_point tp;
 
   time_log(const std::string_view &msg, std::chrono::steady_clock::time_point tp_ = std::chrono::steady_clock::now()) noexcept;
-  ~time_log() noexcept;
+  ~time_log() noexcept;  
 };
 
 template <typename T>
@@ -106,6 +106,8 @@ public:
 private:
   F func;
 };
+
+std::tuple<std::string, std::string, std::string> parse_reddit_dash_playlist(const std::string &url, const std::string &xml);
 
 enum class io_state {
   ok,
