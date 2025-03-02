@@ -188,7 +188,7 @@ void scraper::get_json_data_from_reddit(std::string subreddit, std::string meme_
   Json::CharReaderBuilder builder;
   const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
   if (!reader->parse(json_str.data(), json_str.data() + json_str.size(), &json, &err)) {
-    spdlog::warn("Could not parse responce body for subreddit 'r/{} error: {}", subreddit, err);
+    spdlog::warn("Could not parse responce body for subreddit 'r/{}' error: {}", subreddit, err);
     return;
   }
 
@@ -420,4 +420,21 @@ void scraper::scrape(const std::string_view &current_subreddit, const std::strin
   pool.wait();
 
   spdlog::info("Scraping ends");
+}
+
+void scraper::steal_post(const utility::reddit_post &post) {
+  auto final_path = path + std::string(post.subreddit.empty() ? "_" : post.subreddit);
+
+  if (post.type == "image") {
+    auto img_f = std::bind(&scraper::download_image, this, post.name, std::move(final_path), std::placeholders::_1, std::placeholders::_2);
+    http_get(this->i_client.get(), url, {}, std::move(img_f));
+    return;
+  }
+
+  if (post.type == "video") {
+    auto video_f = std::bind(&scraper::download_video, this, post.name, std::move(final_path), post.audio_link.value_or(std::string()), std::placeholders::_1, std::placeholders::_2);
+    http_get(this->v_client.get(), post.video_link.value(), {}, std::move(video_f));
+  }
+
+  spdlog::warn("Skip downloading meme '{}', url: {}", post.name, post.url);
 }

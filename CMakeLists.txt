@@ -84,6 +84,7 @@ set(SRC_LIST
   src/find_method.cpp
   src/utils.cpp
   src/audio_video_mux.cpp
+  src/steal_method.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
