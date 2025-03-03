@@ -26,16 +26,17 @@ int main(int argc, char *argv[]) {
   } catch(const std::exception &e) {
     spdlog::warn("Error '{}'. Skip. Using default one", e.what());
     // сохранить json на диск
-    auto buffer = create_json(sets);
+    auto buffer = utility::create_json(sets);
     utility::write_file(settings_path, buffer);
   }
 
   const uint16_t port = sets.port;
   const uint16_t log_level = sets.log_level;
 
+  // тут мне особо ни к чему много потоков в принципе как оказалось
   {
     utility::global g;
-    g.init_scraper(4, sets.folder);
+    g.init_scraper(2, sets.folder);
     g.init_settings(std::move(sets));
   }
 
@@ -44,10 +45,13 @@ int main(int argc, char *argv[]) {
     utility::scraper_run(stoken);
   }, stop_source.get_token());
 
+  const uint32_t thread_count = std::max(std::thread::hardware_concurrency(), 2u);
+  spdlog::info("Drogon using {} threads", thread_count);
+
   app().setLogPath("./")
        .setLogLevel(static_cast<trantor::Logger::LogLevel>(log_level)) //  trantor::Logger::kWarn
        .addListener("0.0.0.0", port)
-       .setThreadNum(8)
+       .setThreadNum(thread_count)
        //.enableRunAsDaemon()
        .run();
 

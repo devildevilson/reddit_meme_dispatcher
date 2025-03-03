@@ -1,0 +1,14 @@
+{
+  "subreddits": [
+    "funny",
+    "memes",
+    "dankmemes",
+    "funnymemes"
+  ],
+  "reddit_time_length": "week",
+  "folder": "./meme_folder",
+  "every_N_days": 7,
+  "max_size": 52428800,
+  "port": 8080,
+  "log_level": 3
+}

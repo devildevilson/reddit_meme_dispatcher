@@ -77,7 +77,7 @@ scraper_settings parse_json(const std::string &path) {
 
 std::string create_json(const scraper_settings &s) {
   std::string buffer;
-  auto ec = glz::write_json(s, buffer);
+  auto ec = glz::write<glz::opts{.prettify = true,.indentation_width=2}>(s, buffer);
   if (ec) { throw std::runtime_error("Could not create json file from struct"); }
   return buffer;
 }
