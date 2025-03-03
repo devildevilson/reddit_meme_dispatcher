@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
   const uint32_t thread_count = std::max(std::thread::hardware_concurrency(), 2u);
   spdlog::info("Drogon using {} threads", thread_count);
 
-  app().setLogPath("./")
+  app().setLogPath("")
        .setLogLevel(static_cast<trantor::Logger::LogLevel>(log_level)) //  trantor::Logger::kWarn
        .addListener("0.0.0.0", port)
        .setThreadNum(thread_count)
