@@ -5,13 +5,13 @@ If there a video meme app will mux audio and video in one file
 
 Endpoints:
 1. /meme - get random meme from local storage
+2. /find - find a meme by name in local storage
+3. /parse/?url={} - parse meme data from reddit by reddit url
+4. /steal/?url={} - parse meme data from reddit by reddit url and save it on disk
+5. /recheck - recheck local meme folder
 
 Plans:
-1. Endpoints: /find - find a meme by name in local storage, /scrape - get meme from reddit by reddit url, /recheck - recheck local meme folder
-2. Tests
-3. ???
+1. Tests
 
 Known bugs:
-1. Reddit text post probably will crash app
-2. App doesnt understand galeries
-3. ???
+1. App doesnt understand galeries
